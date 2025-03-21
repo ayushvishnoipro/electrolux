@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { 
   Users, 
@@ -24,8 +23,23 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-// Import for charting
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+// Import for charting - fixed to use proper components from recharts
+import { 
+  AreaChart, 
+  Area, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer, 
+  PieChart, 
+  Pie, 
+  Cell, 
+  BarChart,
+  Bar,
+  LineChart as RechartsLineChart,
+  Line
+} from 'recharts';
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -605,7 +619,7 @@ const Admin = () => {
                       <h2 className="text-lg font-medium mb-4">Voting Hours Distribution</h2>
                       <div className="h-72 w-full">
                         <ResponsiveContainer width="100%" height="100%">
-                          <LineChart data={[
+                          <RechartsLineChart data={[
                             { hour: "8 AM", votes: 42 },
                             { hour: "10 AM", votes: 105 },
                             { hour: "12 PM", votes: 192 },
@@ -624,8 +638,13 @@ const Admin = () => {
                                 <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0.8}/>
                               </linearGradient>
                             </defs>
-                            <LineChart type="monotone" dataKey="votes" stroke="url(#colorGradient)" strokeWidth={3} />
-                          </LineChart>
+                            <Line 
+                              type="monotone" 
+                              dataKey="votes" 
+                              stroke="url(#colorGradient)" 
+                              strokeWidth={3} 
+                            />
+                          </RechartsLineChart>
                         </ResponsiveContainer>
                       </div>
                     </div>

@@ -19,6 +19,7 @@ interface CandidateCardProps {
   status?: "leading" | "active" | "pending" | "elected";
   onClick?: () => void;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export function CandidateCard({
@@ -31,6 +32,7 @@ export function CandidateCard({
   status = "active",
   onClick,
   className,
+  style,
 }: CandidateCardProps) {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -41,6 +43,7 @@ export function CandidateCard({
         isHovered && "scale-[1.02]",
         className
       )}
+      style={style}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
