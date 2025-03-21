@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, ChevronDown } from "lucide-react";
+import { Menu, X, ChevronDown, UserCog } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -71,6 +71,11 @@ const Navbar = () => {
             <Button asChild>
               <Link to="/login?signup=true">Sign Up</Link>
             </Button>
+            <Button variant="outline" size="icon" asChild className="ml-1" title="Admin Login">
+              <Link to="/admin">
+                <UserCog className="h-4 w-4" />
+              </Link>
+            </Button>
           </div>
         </nav>
 
@@ -131,6 +136,12 @@ const Navbar = () => {
               </Button>
               <Button asChild className="w-full justify-center">
                 <Link to="/login?signup=true">Sign Up</Link>
+              </Button>
+              <Button variant="outline" asChild className="w-full justify-between">
+                <Link to="/admin">
+                  <span>Admin Login</span>
+                  <UserCog className="h-4 w-4" />
+                </Link>
               </Button>
             </div>
           </div>
