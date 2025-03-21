@@ -10,14 +10,33 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CreateCandidateDialog } from "./CreateCandidateDialog";
+import { DeleteCandidateDialog } from "./DeleteCandidateDialog";
 import { useCandidateStore } from "@/store/candidateStore";
 import { useElectionStore } from "@/store/electionStore";
+import { useToast } from "@/components/ui/use-toast";
 
 export const CandidatesTab = () => {
   const { elections } = useElectionStore();
-  const { candidates, addCandidate, deleteCandidate } = useCandidateStore();
+  const { candidates, addCandidate, deleteCandidate: deleteCandidateFromStore } = useCandidateStore();
   const [searchTerm, setSearchTerm] = useState("");
   const [electionFilter, setElectionFilter] = useState("all");
+  const { toast } = useToast();
+  const [candidateToDelete, setCandidateToDelete] = useState<{ id: string; name: string } | null>(null);
+
+  const handleDeleteCandidate = (id: string, name: string) => {
+    setCandidateToDelete({ id, name });
+  };
+
+  const confirmDelete = () => {
+    if (candidateToDelete) {
+      deleteCandidateFromStore(candidateToDelete.id);
+      toast({
+        title: "Candidate Deleted",
+        description: "The candidate has been successfully deleted.",
+      });
+      setCandidateToDelete(null);
+    }
+  };
 
   const filteredCandidates = candidates.filter(candidate => {
     const matchesSearch = 
@@ -89,7 +108,7 @@ export const CandidatesTab = () => {
                     <Button 
                       variant="destructive" 
                       size="sm"
-                      onClick={() => deleteCandidate(candidate.id)}
+                      onClick={() => handleDeleteCandidate(candidate.id, candidate.name)}
                     >
                       Delete
                     </Button>
@@ -100,6 +119,14 @@ export const CandidatesTab = () => {
           </div>
         ))}
       </div>
+      {candidateToDelete && (
+        <DeleteCandidateDialog
+          isOpen={!!candidateToDelete}
+          onClose={() => setCandidateToDelete(null)}
+          onConfirm={confirmDelete}
+          candidateName={candidateToDelete.name}
+        />
+      )}
     </div>
   );
 };

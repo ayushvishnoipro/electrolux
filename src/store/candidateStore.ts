@@ -13,6 +13,7 @@ interface CandidateStore {
   candidates: Candidate[];
   addCandidate: (candidate: Omit<Candidate, "id">) => void;
   getCandidatesByElection: (electionId: string) => Candidate[];
+  deleteCandidate: (id: string) => void;
 }
 
 export const useCandidateStore = create<CandidateStore>()(
@@ -42,7 +43,11 @@ export const useCandidateStore = create<CandidateStore>()(
       getCandidatesByElection: (electionId) => {
         const state = get();
         return state.candidates.filter(candidate => candidate.electionId === electionId);
-      }
+      },
+      deleteCandidate: (id: string) => 
+        set((state) => ({
+          candidates: state.candidates.filter((candidate) => candidate.id !== id)
+        }))
     }),
     {
       name: 'candidate-store'
