@@ -1,9 +1,10 @@
-
 import { useState } from "react";
-import { Plus, Filter } from "lucide-react";
+import { Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ElectionCard } from "@/components/elections/ElectionCard";
+import { useElectionStore } from "@/store/electionStore";
+import { useCandidateStore } from "@/store/candidateStore";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,65 +13,25 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-// Sample data interface
-interface Election {
-  id: string;
-  title: string;
-  startDate: string;
-  endDate: string;
-  status: "active" | "upcoming" | "completed";
-  votesCount: number;
-  positions: number;
-}
+import { Toaster } from "@/components/ui/toaster";
+import { Plus } from "lucide-react";
 
 const Elections = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const { elections } = useElectionStore();
+  const { getCandidatesByElection } = useCandidateStore();
   
-  // Sample elections data
-  const elections: Election[] = [
-    {
-      id: "1",
-      title: "Student Council Elections 2023-24",
-      startDate: "Oct 15, 2023",
-      endDate: "Oct 20, 2023",
-      status: "active",
-      votesCount: 1245,
-      positions: 5
-    },
-    {
-      id: "2",
-      title: "Department Representative Elections",
-      startDate: "Oct 25, 2023",
-      endDate: "Oct 30, 2023",
-      status: "upcoming",
-      votesCount: 0,
-      positions: 8
-    },
-    {
-      id: "3",
-      title: "Campus Club Leadership Elections",
-      startDate: "Sep 5, 2023",
-      endDate: "Sep 10, 2023",
-      status: "completed",
-      votesCount: 892,
-      positions: 4
-    },
-    {
-      id: "4",
-      title: "Graduate Student Association Elections",
-      startDate: "Nov 5, 2023",
-      endDate: "Nov 12, 2023",
-      status: "upcoming",
-      votesCount: 0,
-      positions: 3
-    }
-  ];
+  // For demo purposes - this should come from auth context
+  const studentId = "demo-student-id";
+  const studentYear = 2;
 
-  // Filter elections based on search
-  const filteredElections = elections.filter(election => 
-    election.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filter elections based on search and status
+  const filteredElections = elections.filter(election => {
+    const matchesSearch = election.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === "all" || election.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   return (
     <div className="min-h-screen bg-muted/30 dark:bg-transparent pb-16 pt-24">
@@ -78,10 +39,6 @@ const Elections = () => {
         <div className="glass-card rounded-xl p-6 mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <h1 className="text-3xl font-display font-bold">Elections</h1>
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" />
-              <span>Register to Vote</span>
-            </Button>
           </div>
           
           <div className="flex flex-col sm:flex-row gap-4 mb-8">
@@ -119,21 +76,42 @@ const Elections = () => {
               <DropdownMenuContent align="end" className="w-40">
                 <DropdownMenuLabel>Status</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>All</DropdownMenuItem>
-                <DropdownMenuItem>Active</DropdownMenuItem>
-                <DropdownMenuItem>Upcoming</DropdownMenuItem>
-                <DropdownMenuItem>Completed</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setStatusFilter("all")}>
+                  All
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setStatusFilter("active")}>
+                  Active
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setStatusFilter("upcoming")}>
+                  Upcoming
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setStatusFilter("completed")}>
+                  Completed
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredElections.map((election) => (
-              <ElectionCard key={election.id} election={election} />
-            ))}
-          </div>
+          {filteredElections.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredElections.map((election) => (
+                <ElectionCard 
+                  key={election.id} 
+                  election={election}
+                  candidates={getCandidatesByElection(election.id)}
+                  studentId={studentId}
+                  studentYear={studentYear}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No elections found</p>
+            </div>
+          )}
         </div>
       </div>
+      <Toaster />
     </div>
   );
 };

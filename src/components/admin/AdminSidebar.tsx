@@ -1,11 +1,27 @@
-
 import { Button } from "@/components/ui/button";
-import { BarChart3, Calendar, Users, Activity, Settings, LogOut } from "lucide-react";
+import { 
+  LayoutDashboard, 
+  Users, 
+  VoteIcon, 
+  UserSquare2, 
+  BarChart, 
+  Settings, 
+  LogOut 
+} from "lucide-react";
 
 interface AdminSidebarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
 }
+
+const sidebarItems = [
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { id: 'students', label: 'Students', icon: Users },
+  { id: 'elections', label: 'Elections', icon: VoteIcon },
+  { id: 'candidates', label: 'Candidates', icon: UserSquare2 },
+  { id: 'analytics', label: 'Analytics', icon: BarChart },
+  { id: 'settings', label: 'Settings', icon: Settings },
+];
 
 export const AdminSidebar = ({ activeTab, setActiveTab }: AdminSidebarProps) => {
   return (
@@ -18,46 +34,17 @@ export const AdminSidebar = ({ activeTab, setActiveTab }: AdminSidebarProps) => 
       </div>
       
       <nav className="space-y-1">
-        <Button
-          variant={activeTab === "dashboard" ? "secondary" : "ghost"}
-          className="w-full justify-start"
-          onClick={() => setActiveTab("dashboard")}
-        >
-          <BarChart3 className="h-4 w-4 mr-2" />
-          Dashboard
-        </Button>
-        <Button
-          variant={activeTab === "elections" ? "secondary" : "ghost"}
-          className="w-full justify-start"
-          onClick={() => setActiveTab("elections")}
-        >
-          <Calendar className="h-4 w-4 mr-2" />
-          Elections
-        </Button>
-        <Button
-          variant={activeTab === "candidates" ? "secondary" : "ghost"}
-          className="w-full justify-start"
-          onClick={() => setActiveTab("candidates")}
-        >
-          <Users className="h-4 w-4 mr-2" />
-          Candidates
-        </Button>
-        <Button
-          variant={activeTab === "analytics" ? "secondary" : "ghost"}
-          className="w-full justify-start"
-          onClick={() => setActiveTab("analytics")}
-        >
-          <Activity className="h-4 w-4 mr-2" />
-          Analytics
-        </Button>
-        <Button
-          variant={activeTab === "settings" ? "secondary" : "ghost"}
-          className="w-full justify-start"
-          onClick={() => setActiveTab("settings")}
-        >
-          <Settings className="h-4 w-4 mr-2" />
-          Settings
-        </Button>
+        {sidebarItems.map((item) => (
+          <Button
+            key={item.id}
+            variant={activeTab === item.id ? "secondary" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => setActiveTab(item.id)}
+          >
+            <item.icon className="h-4 w-4 mr-2" />
+            {item.label}
+          </Button>
+        ))}
       </nav>
       
       <div className="pt-6 mt-6 border-t">

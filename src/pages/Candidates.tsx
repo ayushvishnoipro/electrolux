@@ -1,9 +1,10 @@
-
 import { useState } from "react";
-import { Filter } from "lucide-react";
+import { Filter, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CandidateCard } from "@/components/CandidateCard";
+import { useElectionStore } from "@/store/electionStore";
+import { useCandidateStore } from "@/store/candidateStore";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,8 +13,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
-// Candidate interface
 interface Candidate {
   id: string;
   name: string;
@@ -26,84 +31,45 @@ interface Candidate {
   status: "leading" | "active" | "pending" | "elected";
 }
 
+interface ElectionGroup {
+  electionName: string;
+  electionId: string;
+  status: string;
+  candidates: Candidate[];
+}
+
 const Candidates = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  
-  // Sample candidates data
-  const candidates: Candidate[] = [
-    {
-      id: "1",
-      name: "Alex Johnson",
-      position: "Student Body President",
-      party: "United Students",
-      stats: {
-        year: "Senior",
-        department: "Political Science"
-      },
-      status: "leading"
-    },
-    {
-      id: "2",
-      name: "Miguel Rodriguez",
-      position: "Student Body President",
-      party: "Progress Alliance",
-      stats: {
-        year: "Junior",
-        department: "Economics"
-      },
-      status: "active"
-    },
-    {
-      id: "3",
-      name: "Sarah Chen",
-      position: "Vice President",
-      party: "Student First",
-      stats: {
-        year: "Senior",
-        department: "Computer Science"
-      },
-      status: "active"
-    },
-    {
-      id: "4",
-      name: "Tyrone Wilson",
-      position: "Treasurer",
-      party: "United Students",
-      stats: {
-        year: "Sophomore",
-        department: "Finance"
-      },
-      status: "leading"
-    },
-    {
-      id: "5",
-      name: "Emily Garcia",
-      position: "Secretary",
-      party: "Progress Alliance",
-      stats: {
-        year: "Junior",
-        department: "Communications"
-      },
-      status: "active"
-    },
-    {
-      id: "6",
-      name: "David Park",
-      position: "Secretary",
-      party: "Student First",
-      stats: {
-        year: "Senior",
-        department: "Sociology"
-      },
-      status: "active"
-    }
-  ];
+  const [positionFilter, setPositionFilter] = useState("all");
+  const [openSections, setOpenSections] = useState<string[]>([]);
+  const { elections } = useElectionStore();
+  const { candidates } = useCandidateStore();
 
-  // Filter candidates based on search
-  const filteredCandidates = candidates.filter(candidate => 
-    candidate.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    candidate.position.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Group candidates by election
+  const groupedCandidates: ElectionGroup[] = elections.map(election => ({
+    electionName: election.name,
+    electionId: election.id,
+    status: election.status,
+    candidates: candidates.filter(c => c.electionId === election.id)
+  })).filter(group => group.candidates.length > 0);
+
+  // Filter candidates based on search and position
+  const filteredGroups = groupedCandidates.map(group => ({
+    ...group,
+    candidates: group.candidates.filter(candidate => 
+      (candidate.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+       candidate.position.toLowerCase().includes(searchQuery.toLowerCase())) &&
+      (positionFilter === "all" || candidate.position === positionFilter)
+    )
+  })).filter(group => group.candidates.length > 0);
+
+  const toggleSection = (electionId: string) => {
+    setOpenSections(prev => 
+      prev.includes(electionId) 
+        ? prev.filter(id => id !== electionId)
+        : [...prev, electionId]
+    );
+  };
 
   return (
     <div className="min-h-screen bg-muted/30 dark:bg-transparent pb-16 pt-24">
@@ -142,36 +108,77 @@ const Candidates = () => {
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="gap-2">
                   <Filter className="h-4 w-4" />
-                  <span>Filter</span>
+                  <span>Filter by Position</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-40">
                 <DropdownMenuLabel>Position</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>All Positions</DropdownMenuItem>
-                <DropdownMenuItem>President</DropdownMenuItem>
-                <DropdownMenuItem>Vice President</DropdownMenuItem>
-                <DropdownMenuItem>Treasurer</DropdownMenuItem>
-                <DropdownMenuItem>Secretary</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setPositionFilter("all")}>
+                  All Positions
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setPositionFilter("President")}>
+                  President
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setPositionFilter("Vice President")}>
+                  Vice President
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setPositionFilter("Treasurer")}>
+                  Treasurer
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setPositionFilter("Secretary")}>
+                  Secretary
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredCandidates.map((candidate, index) => (
-              <CandidateCard 
-                key={candidate.id}
-                id={candidate.id}
-                name={candidate.name}
-                position={candidate.position}
-                party={candidate.party}
-                stats={candidate.stats}
-                status={candidate.status}
-                style={{ animationDelay: `${index * 0.1}s` }}
-                onClick={() => {}}
-                className="h-full"
-              />
+          <div className="space-y-6">
+            {filteredGroups.map((group) => (
+              <Collapsible 
+                key={group.electionId}
+                open={openSections.includes(group.electionId)}
+                onOpenChange={() => toggleSection(group.electionId)}
+                className="border rounded-lg p-4"
+              >
+                <CollapsibleTrigger className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-4">
+                    <h2 className="text-xl font-semibold">{group.electionName}</h2>
+                    <span className={`px-2 py-1 rounded-full text-xs capitalize ${
+                      group.status === 'active' ? 'bg-green-100 text-green-800' :
+                      group.status === 'upcoming' ? 'bg-blue-100 text-blue-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {group.status}
+                    </span>
+                  </div>
+                  {openSections.includes(group.electionId) ? (
+                    <ChevronUp className="h-5 w-5" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5" />
+                  )}
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pt-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {group.candidates.map((candidate, index) => (
+                      <CandidateCard 
+                        key={candidate.id}
+                        {...candidate}
+                        style={{ animationDelay: `${index * 0.1}s` }}
+                        onClick={() => {}}
+                        className="h-full"
+                      />
+                    ))}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
             ))}
+
+            {filteredGroups.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">No candidates found</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
